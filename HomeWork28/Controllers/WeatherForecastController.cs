@@ -2,38 +2,86 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HomeWork28.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace HomeWork28.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    [Route("api")]
+    public class FrazesController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        DCon db;
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public FrazesController(DCon context)
         {
-            _logger = logger;
+            db = context;
+
         }
 
+        // GET: api/<controller>
+
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public async Task<ActionResult<IEnumerable<Frazi>>> Get()
         {
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            return await db.Frazes.ToListAsync();
+        }
+
+        // GET api/Frazi/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Frazi>> Get(int id)
+        {
+            Frazi Frazi = await db.Frazes.FirstOrDefaultAsync(x => x.Id == id);
+            if (Frazi == null)
+                return NotFound();
+            return new ObjectResult(Frazi);
+        }
+
+        // POST api/Frazi
+        [HttpPost]
+        public ActionResult Post(Frazi Frazi)
+        {
+            if (Frazi == null)
             {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+                return BadRequest();
+            }
+            db.Frazes.Add(Frazi);
+            db.SaveChanges();
+            return Ok();
+        }
+
+        // PUT api/Frazi/
+        [HttpPut("{id}")]
+        public ActionResult Put(Frazi Frazi, int id)
+        {
+            if (Frazi == null)
+            {
+                return BadRequest();
+            }
+            Frazi.Id = id;
+            if (!db.Frazes.Any(x => x.Id == Frazi.Id))
+            {
+                return NotFound();
+            }
+            db.Update(Frazi);
+            db.SaveChanges();
+            return Ok();
+        }
+
+        // DELETE api/Frazi/5
+        [HttpDelete("{id}")]
+        public ActionResult Delete(int id)
+        {
+            Frazi Frazi = db.Frazes.FirstOrDefault(x => x.Id == id);
+            if (Frazi == null)
+            {
+                return NotFound();
+            }
+            db.Frazes.Remove(Frazi);
+            db.SaveChanges();
+            return Ok(Frazi);
         }
     }
 }
